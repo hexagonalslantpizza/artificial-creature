@@ -1,14 +1,42 @@
+// main.js
+
+// Artificial Creature Experiment
+
+// Application controller, controls, keyboard input, mouse input,
+
+// animation loop, and simulation/UI connection.
+
 import {
 
     createSimulation,
 
     updateSimulation,
 
-    addFood,
+    resetSimulationCreature,
 
-    addWater,
+    resetSimulationBrain,
 
-    addDanger
+    fullResetSimulation,
+
+    toggleSimulation,
+
+    setSimulationRunning,
+
+    spawnFood,
+
+    spawnWater,
+
+    spawnDanger,
+
+    clearFood,
+
+    clearWater,
+
+    clearDanger,
+
+    clearMap,
+
+    getSimulationState
 
 } from "./simulation.js";
 
@@ -16,9 +44,7 @@ import {
 
     createUI,
 
-    renderUI,
-
-    handleUIClick
+    handleCanvasClick
 
 } from "./ui.js";
 
@@ -30,7 +56,21 @@ const canvas =
 
     );
 
-const sim =
+if (!canvas) {
+
+    throw new Error(
+
+        "Could not find #simulationCanvas."
+
+    );
+
+}
+
+const ctx =
+
+    canvas.getContext("2d");
+
+const simulation =
 
     createSimulation();
 
@@ -40,9 +80,15 @@ const ui =
 
         canvas,
 
-        sim
+        simulation
 
     );
+
+// ------------------------------------------------------------
+
+// DOM CONTROLS
+
+// ------------------------------------------------------------
 
 const startButton =
 
@@ -84,195 +130,123 @@ const dangerButton =
 
     );
 
-const status =
+const clearFoodButton =
 
     document.getElementById(
 
-        "status"
+        "clearFoodButton"
 
     );
 
-function updateStatus() {
+const clearWaterButton =
 
-    if (sim.running) {
+    document.getElementById(
 
-        status.textContent =
+        "clearWaterButton"
 
-            "RUNNING";
+    );
 
-        status.classList.add(
+const clearDangerButton =
 
-            "running"
+    document.getElementById(
 
-        );
+        "clearDangerButton"
 
-        startButton.textContent =
+    );
 
-            "STOP EXPERIMENT";
+const clearMapButton =
 
-    } else {
+    document.getElementById(
 
-        status.textContent =
+        "clearMapButton"
 
-            "STOPPED";
+    );
 
-        status.classList.remove(
+const resetCreatureButton =
 
-            "running"
+    document.getElementById(
 
-        );
+        "resetCreatureButton"
 
-        startButton.textContent =
+    );
 
-            "START EXPERIMENT";
+const resetBrainButton =
 
-    }
+    document.getElementById(
 
-}
+        "resetBrainButton"
 
-startButton.addEventListener(
+    );
 
-    "click",
+const fullResetButton =
 
-    () => {
+    document.getElementById(
 
-        sim.running =
+        "fullResetButton"
 
-            !sim.running;
+    );
 
-        if (sim.running) {
+// ------------------------------------------------------------
 
-            sim.experimentNumber++;
+// MOUSE POSITION
 
-            sim.patternTrace = [];
+// ------------------------------------------------------------
 
-            sim.brain.pulses = [];
+let mouseX = 600;
 
-        }
+let mouseY = 375;
 
-        updateStatus();
+canvas.addEventListener(
 
-    }
+    "mousemove",
 
-);
+    event => {
 
-resetButton.addEventListener(
+        const rect =
 
-    "click",
+            canvas.getBoundingClientRect();
 
-    () => {
+        const scaleX =
 
-        sim.running = false;
+            canvas.width /
 
-        sim.creature.x =
+            rect.width;
 
-            sim.world.food.length
+        const scaleY =
 
-                ? sim.creature.x
+            canvas.height /
 
-                : 430;
+            rect.height;
 
-        sim.creature.y = 375;
+        mouseX =
 
-        sim.brain.pulses = [];
+            (event.clientX -
 
-        for (
+                rect.left) *
 
-            const neuron
+            scaleX;
 
-            of sim.brain.neurons
+        mouseY =
 
-        ) {
+            (event.clientY -
 
-            neuron.potential = 0;
+                rect.top) *
 
-            neuron.refractory = 0;
+            scaleY;
 
-            neuron.memory = 0;
+        ui.mouseX = mouseX;
 
-            neuron.fired = false;
-
-            neuron.activation = 0;
-
-        }
-
-        updateStatus();
+        ui.mouseY = mouseY;
 
     }
 
 );
 
-foodButton.addEventListener(
+// ------------------------------------------------------------
 
-    "click",
+// CANVAS CLICK
 
-    () => {
-
-        addFood(
-
-            sim,
-
-            50 +
-
-                Math.random() * 760,
-
-            70 +
-
-                Math.random() * 650
-
-        );
-
-    }
-
-);
-
-waterButton.addEventListener(
-
-    "click",
-
-    () => {
-
-        addWater(
-
-            sim,
-
-            50 +
-
-                Math.random() * 760,
-
-            70 +
-
-                Math.random() * 650
-
-        );
-
-    }
-
-);
-
-dangerButton.addEventListener(
-
-    "click",
-
-    () => {
-
-        addDanger(
-
-            sim,
-
-            50 +
-
-                Math.random() * 760,
-
-            70 +
-
-                Math.random() * 650
-
-        );
-
-    }
-
-);
+// ------------------------------------------------------------
 
 canvas.addEventListener(
 
@@ -312,9 +286,9 @@ canvas.addEventListener(
 
             scaleY;
 
-        handleUIClick(
+        handleCanvasClick(
 
-            ui,
+            simulation,
 
             x,
 
@@ -326,23 +300,669 @@ canvas.addEventListener(
 
 );
 
-function gameLoop() {
+// ------------------------------------------------------------
 
-    updateSimulation(sim);
+// SPAWN AT MOUSE
 
-    renderUI(ui);
+// ------------------------------------------------------------
 
-    updateStatus();
+function getWorldMousePosition() {
 
-    requestAnimationFrame(
+    /*
 
-        gameLoop
+        Brain panel occupies the first 340 pixels.
+
+        World coordinates therefore begin at x = 340.
+
+    */
+
+    const worldX =
+
+        mouseX - 340;
+
+    const worldY =
+
+        mouseY;
+
+    return {
+
+        x: Math.max(
+
+            12,
+
+            Math.min(
+
+                848,
+
+                worldX
+
+            )
+
+        ),
+
+        y: Math.max(
+
+            12,
+
+            Math.min(
+
+                738,
+
+                worldY
+
+            )
+
+        )
+
+    };
+
+}
+
+function spawnFoodAtMouse() {
+
+    const position =
+
+        getWorldMousePosition();
+
+    spawnFood(
+
+        simulation,
+
+        position.x,
+
+        position.y
 
     );
 
 }
 
-updateStatus();
+function spawnWaterAtMouse() {
 
-gameLoop();
+    const position =
+
+        getWorldMousePosition();
+
+    spawnWater(
+
+        simulation,
+
+        position.x,
+
+        position.y
+
+    );
+
+}
+
+function spawnDangerAtMouse() {
+
+    const position =
+
+        getWorldMousePosition();
+
+    spawnDanger(
+
+        simulation,
+
+        position.x,
+
+        position.y
+
+    );
+
+}
+
+// ------------------------------------------------------------
+
+// START / STOP
+
+// ------------------------------------------------------------
+
+function updateStartButton() {
+
+    if (!startButton) {
+
+        return;
+
+    }
+
+    if (simulation.running) {
+
+        startButton.textContent =
+
+            "Pause";
+
+        startButton.setAttribute(
+
+            "aria-label",
+
+            "Pause simulation"
+
+        );
+
+    } else {
+
+        startButton.textContent =
+
+            "Start";
+
+        startButton.setAttribute(
+
+            "aria-label",
+
+            "Start simulation"
+
+        );
+
+    }
+
+}
+
+if (startButton) {
+
+    startButton.addEventListener(
+
+        "click",
+
+        () => {
+
+            toggleSimulation(
+
+                simulation
+
+            );
+
+            updateStartButton();
+
+        }
+
+    );
+
+}
+
+// ------------------------------------------------------------
+
+// RESET BUTTON
+
+// ------------------------------------------------------------
+
+if (resetButton) {
+
+    resetButton.addEventListener(
+
+        "click",
+
+        () => {
+
+            resetSimulationCreature(
+
+                simulation
+
+            );
+
+            updateStartButton();
+
+        }
+
+    );
+
+}
+
+// ------------------------------------------------------------
+
+// SPAWN BUTTONS
+
+// ------------------------------------------------------------
+
+if (foodButton) {
+
+    foodButton.addEventListener(
+
+        "click",
+
+        spawnFoodAtMouse
+
+    );
+
+}
+
+if (waterButton) {
+
+    waterButton.addEventListener(
+
+        "click",
+
+        spawnWaterAtMouse
+
+    );
+
+}
+
+if (dangerButton) {
+
+    dangerButton.addEventListener(
+
+        "click",
+
+        spawnDangerAtMouse
+
+    );
+
+}
+
+// ------------------------------------------------------------
+
+// CLEAR BUTTONS
+
+// ------------------------------------------------------------
+
+if (clearFoodButton) {
+
+    clearFoodButton.addEventListener(
+
+        "click",
+
+        () => {
+
+            clearFood(
+
+                simulation
+
+            );
+
+        }
+
+    );
+
+}
+
+if (clearWaterButton) {
+
+    clearWaterButton.addEventListener(
+
+        "click",
+
+        () => {
+
+            clearWater(
+
+                simulation
+
+            );
+
+        }
+
+    );
+
+}
+
+if (clearDangerButton) {
+
+    clearDangerButton.addEventListener(
+
+        "click",
+
+        () => {
+
+            clearDanger(
+
+                simulation
+
+            );
+
+        }
+
+    );
+
+}
+
+if (clearMapButton) {
+
+    clearMapButton.addEventListener(
+
+        "click",
+
+        () => {
+
+            clearMap(
+
+                simulation
+
+            );
+
+        }
+
+    );
+
+}
+
+// ------------------------------------------------------------
+
+// ADVANCED RESET BUTTONS
+
+// ------------------------------------------------------------
+
+if (resetCreatureButton) {
+
+    resetCreatureButton.addEventListener(
+
+        "click",
+
+        () => {
+
+            resetSimulationCreature(
+
+                simulation
+
+            );
+
+        }
+
+    );
+
+}
+
+if (resetBrainButton) {
+
+    resetBrainButton.addEventListener(
+
+        "click",
+
+        () => {
+
+            const confirmed =
+
+                window.confirm(
+
+                    "Reset the brain to its newborn state? All learned memories, specializations, connections, and brain growth will be erased."
+
+                );
+
+            if (!confirmed) {
+
+                return;
+
+            }
+
+            resetSimulationBrain(
+
+                simulation
+
+            );
+
+        }
+
+    );
+
+}
+
+if (fullResetButton) {
+
+    fullResetButton.addEventListener(
+
+        "click",
+
+        () => {
+
+            const confirmed =
+
+                window.confirm(
+
+                    "Perform a FULL RESET? This will erase the learned brain and clear the entire map."
+
+                );
+
+            if (!confirmed) {
+
+                return;
+
+            }
+
+            fullResetSimulation(
+
+                simulation
+
+            );
+
+            updateStartButton();
+
+        }
+
+    );
+
+}
+
+// ------------------------------------------------------------
+
+// KEYBOARD CONTROLS
+
+// ------------------------------------------------------------
+
+document.addEventListener(
+
+    "keydown",
+
+    event => {
+
+        /*
+
+            Don't trigger game controls while typing into
+
+            an input field.
+
+        */
+
+        const tag =
+
+            event.target?.tagName;
+
+        if (
+
+            tag === "INPUT" ||
+
+            tag === "TEXTAREA" ||
+
+            tag === "SELECT"
+
+        ) {
+
+            return;
+
+        }
+
+        const key =
+
+            event.key.toLowerCase();
+
+        // Food
+
+        if (key === "f") {
+
+            event.preventDefault();
+
+            spawnFoodAtMouse();
+
+        }
+
+        // Water
+
+        if (key === "w") {
+
+            event.preventDefault();
+
+            spawnWaterAtMouse();
+
+        }
+
+        // Danger
+
+        if (key === "d") {
+
+            event.preventDefault();
+
+            spawnDangerAtMouse();
+
+        }
+
+        // Space = pause/start
+
+        if (
+
+            event.code ===
+
+            "Space"
+
+        ) {
+
+            event.preventDefault();
+
+            toggleSimulation(
+
+                simulation
+
+            );
+
+            updateStartButton();
+
+        }
+
+        // C = clear entire map
+
+        if (key === "c") {
+
+            event.preventDefault();
+
+            clearMap(
+
+                simulation
+
+            );
+
+        }
+
+    }
+
+);
+
+// ------------------------------------------------------------
+
+// RESIZE HANDLING
+
+// ------------------------------------------------------------
+
+function resizeCanvas() {
+
+    /*
+
+        The simulation itself remains fixed at 1200x750.
+
+        CSS handles visual scaling so the coordinates remain
+
+        consistent.
+
+    */
+
+    canvas.width = 1200;
+
+    canvas.height = 750;
+
+}
+
+window.addEventListener(
+
+    "resize",
+
+    resizeCanvas
+
+);
+
+resizeCanvas();
+
+// ------------------------------------------------------------
+
+// ANIMATION LOOP
+
+// ------------------------------------------------------------
+
+let previousTime =
+
+    performance.now();
+
+function animationLoop(
+
+    currentTime
+
+) {
+
+    let delta =
+
+        currentTime -
+
+        previousTime;
+
+    previousTime =
+
+        currentTime;
+
+    /*
+
+        Prevent a giant simulation jump if the browser tab
+
+        was hidden or the page was temporarily frozen.
+
+    */
+
+    delta =
+
+        Math.min(
+
+            delta,
+
+            50
+
+        );
+
+    /*
+
+        Convert milliseconds to approximately 60 FPS
+
+        simulation steps.
+
+    */
+
+    const dt =
+
+        delta / 16.6667;
+
+    updateSimulation(
+
+        simulation,
+
+        dt
+
+    );
+
+    ui.render();
+
+    requestAnimationFrame(
+
+        animationLoop
+
+    );
+
+}
+
+// ------------------------------------------------------------
+
+// INITIAL STATE
+
+// ------------------------------------------------------------
+
+updateStartButton();
+
+requestAnimationFrame(
+
+    animationLoop
+
+);
 
