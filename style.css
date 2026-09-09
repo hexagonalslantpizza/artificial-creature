@@ -1,1 +1,33 @@
+* {
+     box-sizing: border-box;
+}
 
+body {
+     margin: 0;
+     background: #080b10;
+     color: #e8edf2;
+     font-family: Arial, sans-serif;
+}
+
+#app {
+     width: 100%;
+     min-height: 100vh;
+     padding: 20px;
+}
+
+h1 {
+     margin: 0 0 15px 0;
+     font-size: 26px;
+     font-weight: 600;
+}
+
+#simulation {
+     display: block;
+     width: 100%;
+     max-width: 1200px;
+     height: auto;
+
+     background: #10151c;
+     border: 1px solid #29313b;
+     border-radius: 8px;
+}
