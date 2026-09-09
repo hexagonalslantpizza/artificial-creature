@@ -1,540 +1,677 @@
-// Artificial Creature Experiment
-
-// World / environment system
+// Artificial Creature Experiment — Alpha
+// World and Environment System
 
 export const WORLD_WIDTH = 860;
-
 export const WORLD_HEIGHT = 750;
+export const MAX_OBJECTS = 150;
 
-export const MAX_OBJECTS = 100;
+export const FOOD = "food";
+export const WATER = "water";
+export const DANGER = "danger";
+
+function clamp(value, min, max) {
+return Math.max(min, Math.min(max, value));
+}
+
+function distance(a, b) {
+const dx = a.x - b.x;
+const dy = a.y - b.y;
+
+return Math.sqrt(dx * dx + dy * dy);
+}
+
+function createObject(type, x, y) {
+return {
+id: Date.now() + Math.random(),
+type,
+x,
+y,
+radius: type === DANGER ? 18 : 14,
+age: 0
+};
+}
 
 export function createWorld() {
+return {
+width: WORLD_WIDTH,
+height: WORLD_HEIGHT,
 
-    return {
+food: [],
+water: [],
+danger: [],
 
-        food: [],
+totalSpawned: {
+food: 0,
+water: 0,
+danger: 0
+},
 
-        water: [],
+totalConsumed: {
+food: 0,
+water: 0
+},
 
-        danger: []
+totalDangerHits: 0,
 
-    };
+// Used by the learning system to notice
+// unfamiliar changes in the environment.
+novelty: 0,
 
+lastEvent: "World initialized"
+};
 }
 
-function randomPosition() {
+// ------------------------------------------------------------
+// Spawning
+// ------------------------------------------------------------
 
-    return {
-
-        x: 30 + Math.random() * (WORLD_WIDTH - 60),
-
-        y: 30 + Math.random() * (WORLD_HEIGHT - 60)
-
-    };
-
+function validPosition(world, x, y) {
+return (
+Number.isFinite(x) &&
+Number.isFinite(y) &&
+x >= 15 &&
+y >= 15 &&
+x <= world.width - 15 &&
+y <= world.height - 15
+);
 }
 
-export function spawnFood(world, x = null, y = null) {
-
-    const position =
-
-        x === null || y === null
-
-            ? randomPosition()
-
-            : { x, y };
-
-    if (world.food.length >= MAX_OBJECTS) {
-
-        return;
-
-    }
-
-    world.food.push({
-
-        x: position.x,
-
-        y: position.y
-
-    });
-
+function addObject(world, type, x, y) {
+if (!validPosition(world, x, y)) {
+return null;
 }
 
-export function spawnWater(world, x = null, y = null) {
+const totalObjects =
+world.food.length +
+world.water.length +
+world.danger.length;
 
-    const position =
-
-        x === null || y === null
-
-            ? randomPosition()
-
-            : { x, y };
-
-    if (world.water.length >= MAX_OBJECTS) {
-
-        return;
-
-    }
-
-    world.water.push({
-
-        x: position.x,
-
-        y: position.y
-
-    });
-
+if (totalObjects >= MAX_OBJECTS) {
+return null;
 }
 
-export function spawnDanger(world, x = null, y = null) {
+const object = createObject(type, x, y);
 
-    const position =
-
-        x === null || y === null
-
-            ? randomPosition()
-
-            : { x, y };
-
-    if (world.danger.length >= MAX_OBJECTS) {
-
-        return;
-
-    }
-
-    world.danger.push({
-
-        x: position.x,
-
-        y: position.y,
-
-        cooldown: 0
-
-    });
-
+if (type === FOOD) {
+world.food.push(object);
+} else if (type === WATER) {
+world.water.push(object);
+} else if (type === DANGER) {
+world.danger.push(object);
 }
 
-export function distance(x1, y1, x2, y2) {
+world.totalSpawned[type] += 1;
 
-    const dx = x2 - x1;
+world.novelty = clamp(
+world.novelty + 0.08,
+0,
+1
+);
 
-    const dy = y2 - y1;
+world.lastEvent =
+`${type} appeared`;
 
-    return Math.sqrt(
-
-        dx * dx + dy * dy
-
-    );
-
+return object;
 }
+
+export function spawnFood(world, x, y) {
+return addObject(
+world,
+FOOD,
+x,
+y
+);
+}
+
+export function spawnWater(world, x, y) {
+return addObject(
+world,
+WATER,
+x,
+y
+);
+}
+
+export function spawnDanger(world, x, y) {
+return addObject(
+world,
+DANGER,
+x,
+y
+);
+}
+
+// ------------------------------------------------------------
+// Clearing map objects
+// ------------------------------------------------------------
+
+export function clearFood(world) {
+const count = world.food.length;
+
+world.food = [];
+
+world.lastEvent =
+`Cleared ${count} food objects`;
+
+return count;
+}
+
+export function clearWater(world) {
+const count = world.water.length;
+
+world.water = [];
+
+world.lastEvent =
+`Cleared ${count} water objects`;
+
+return count;
+}
+
+export function clearDanger(world) {
+const count = world.danger.length;
+
+world.danger = [];
+
+world.lastEvent =
+`Cleared ${count} danger objects`;
+
+return count;
+}
+
+export function clearMap(world) {
+const food = world.food.length;
+const water = world.water.length;
+const danger = world.danger.length;
+
+world.food = [];
+world.water = [];
+world.danger = [];
+
+world.lastEvent =
+`Map cleared: ${food} food, ${water} water, ${danger} danger`;
+
+return {
+food,
+water,
+danger
+};
+}
+
+// ------------------------------------------------------------
+// Distance helpers
+// ------------------------------------------------------------
+
+export { distance };
+
+// ------------------------------------------------------------
+// Directional sensory signals
+// ------------------------------------------------------------
 
 function directionalSignal(
-
-    creature,
-
-    objects
-
+creature,
+objects,
+side,
+range = 300
 ) {
+let strongest = 0;
 
-    let left = 0;
+for (const object of objects) {
+const dx = object.x - creature.x;
+const dy = object.y - creature.y;
 
-    let right = 0;
+const dist =
+Math.sqrt(dx * dx + dy * dy);
 
-    let nearestLeft = Infinity;
-
-    let nearestRight = Infinity;
-
-    for (const object of objects) {
-
-        const dx = object.x - creature.x;
-
-        const dy = object.y - creature.y;
-
-        const dist =
-
-            Math.sqrt(
-
-                dx * dx +
-
-                dy * dy
-
-            );
-
-        if (dist > 300) {
-
-            continue;
-
-        }
-
-        const strength =
-
-            1 - dist / 300;
-
-        if (dx < 0) {
-
-            left += strength;
-
-            nearestLeft =
-
-                Math.min(
-
-                    nearestLeft,
-
-                    dist
-
-                );
-
-        } else {
-
-            right += strength;
-
-            nearestRight =
-
-                Math.min(
-
-                    nearestRight,
-
-                    dist
-
-                );
-
-        }
-
-    }
-
-    return {
-
-        left: Math.min(left, 1),
-
-        right: Math.min(right, 1),
-
-        nearestLeft,
-
-        nearestRight
-
-    };
-
+if (dist > range) {
+continue;
 }
 
+// Ignore objects almost directly behind
+// the creature for directional sensing.
+if (side === "left" && dx >= 0) {
+continue;
+}
+
+if (side === "right" && dx <= 0) {
+continue;
+}
+
+const strength =
+1 - dist / range;
+
+strongest = Math.max(
+strongest,
+strength
+);
+}
+
+return clamp(
+strongest,
+0,
+1
+);
+}
+
+// ------------------------------------------------------------
+// Sensory information
+// ------------------------------------------------------------
+
 export function getSensoryState(
-
-    world,
-
-    creature
-
+world,
+creature
 ) {
+return {
+foodLeft: directionalSignal(
+creature,
+world.food,
+"left"
+),
 
-    const food =
+foodRight: directionalSignal(
+creature,
+world.food,
+"right"
+),
 
-        directionalSignal(
+dangerLeft: directionalSignal(
+creature,
+world.danger,
+"left"
+),
 
-            creature,
+dangerRight: directionalSignal(
+creature,
+world.danger,
+"right"
+),
 
-            world.food
+waterLeft: directionalSignal(
+creature,
+world.water,
+"left"
+),
 
-        );
+waterRight: directionalSignal(
+creature,
+world.water,
+"right"
+)
+};
+}
 
-    const danger =
+// ------------------------------------------------------------
+// Full local perception
+// ------------------------------------------------------------
 
-        directionalSignal(
+export function getEnvironmentPerception(
+world,
+creature
+) {
+const sensory =
+getSensoryState(
+world,
+creature
+);
 
-            creature,
+const nearby = [];
 
-            world.danger
+const allObjects = [
+...world.food,
+...world.water,
+...world.danger
+];
 
-        );
+for (const object of allObjects) {
+const dist =
+distance(
+creature,
+object
+);
 
-    const water =
+if (dist <= 300) {
+nearby.push({
+type: object.type,
+distance: dist,
+dx: object.x - creature.x,
+dy: object.y - creature.y
+});
+}
+}
 
-        directionalSignal(
+nearby.sort(
+(a, b) =>
+a.distance -
+b.distance
+);
 
-            creature,
+return {
+sensory,
+nearby,
+nearbyCount: nearby.length,
 
-            world.water
+nearestFood:
+findNearest(
+creature,
+world.food
+),
 
-        );
+nearestWater:
+findNearest(
+creature,
+world.water
+),
 
-    return [
+nearestDanger:
+findNearest(
+creature,
+world.danger
+)
+};
+}
 
-        food.left,
+function findNearest(
+creature,
+objects
+) {
+let nearest = null;
+let nearestDistance = Infinity;
 
-        food.right,
+for (const object of objects) {
+const d =
+distance(
+creature,
+object
+);
 
-        danger.left,
+if (d < nearestDistance) {
+nearestDistance = d;
 
-        danger.right,
+nearest = {
+object,
+distance: d,
+dx:
+object.x -
+creature.x,
+dy:
+object.y -
+creature.y
+};
+}
+}
 
-        water.left,
+return nearest;
+}
 
-        water.right
+// ------------------------------------------------------------
+// Pattern detection
+// ------------------------------------------------------------
 
-    ];
+function quantize(value) {
+if (value < 0.2) {
+return "0";
+}
 
+if (value < 0.5) {
+return "1";
+}
+
+if (value < 0.8) {
+return "2";
+}
+
+return "3";
 }
 
 export function detectPattern(
-
-    world,
-
-    creature
-
+world,
+creature,
+sensoryState = null
 ) {
-
-    const senses =
-
-        getSensoryState(
-
-            world,
-
-            creature
-
-        );
-
-    function quantize(value) {
-
-        if (value < 0.10) return 0;
-
-        if (value < 0.35) return 1;
-
-        if (value < 0.65) return 2;
-
-        if (value < 0.90) return 3;
-
-        return 4;
-
-    }
-
-    const nearby = [];
-
-    const allObjects = [
-
-        ...world.food,
-
-        ...world.water,
-
-        ...world.danger
-
-    ];
-
-    for (const object of allObjects) {
-
-        if (
-
-            distance(
-
-                creature.x,
-
-                creature.y,
-
-                object.x,
-
-                object.y
-
-            ) <= 120
-
-        ) {
-
-            nearby.push(object);
-
-        }
-
-    }
-
-    const objectCount =
-
-        Math.min(
-
-            nearby.length,
-
-            4
-
-        );
-
-    let touchingPairs = 0;
-
-    for (
-
-        let i = 0;
-
-        i < nearby.length;
-
-        i++
-
-    ) {
-
-        for (
-
-            let j = i + 1;
-
-            j < nearby.length;
-
-            j++
-
-        ) {
-
-            if (
-
-                distance(
-
-                    nearby[i].x,
-
-                    nearby[i].y,
-
-                    nearby[j].x,
-
-                    nearby[j].y
-
-                ) < 28
-
-            ) {
-
-                touchingPairs++;
-
-            }
-
-        }
-
-    }
-
-    touchingPairs =
-
-        Math.min(
-
-            touchingPairs,
-
-            3
-
-        );
-
-    const maxSense =
-
-        Math.max(...senses);
-
-    if (
-
-        objectCount === 0 &&
-
-        maxSense < 0.10
-
-    ) {
-
-        return "NONE";
-
-    }
-
-    const values = [
-
-        ...senses.map(quantize),
-
-        objectCount,
-
-        touchingPairs
-
-    ];
-
-    return JSON.stringify(values);
-
+const sensory =
+sensoryState ||
+getSensoryState(
+world,
+creature
+);
+
+const nearbyObjects =
+[
+...world.food,
+...world.water,
+...world.danger
+].filter(
+object =>
+distance(
+creature,
+object
+) < 120
+);
+
+let touchingPairs = 0;
+
+for (
+let i = 0;
+i < nearbyObjects.length;
+i++
+) {
+for (
+let j = i + 1;
+j < nearbyObjects.length;
+j++
+) {
+if (
+distance(
+nearbyObjects[i],
+nearbyObjects[j]
+) < 45
+) {
+touchingPairs += 1;
+}
+}
 }
 
-export function updateDangerCooldowns(
+const objectSignature =
+nearbyObjects
+.map(object => object.type)
+.sort()
+.join(",");
 
-    world
+return [
+quantize(sensory.foodLeft),
+quantize(sensory.foodRight),
 
-) {
+quantize(sensory.dangerLeft),
+quantize(sensory.dangerRight),
 
-    for (const danger of world.danger) {
+quantize(sensory.waterLeft),
+quantize(sensory.waterRight),
 
-        if (danger.cooldown > 0) {
+Math.min(
+nearbyObjects.length,
+5
+),
 
-            danger.cooldown--;
+Math.min(
+touchingPairs,
+5
+),
 
-        }
-
-    }
-
+objectSignature || "empty"
+].join("|");
 }
+
+// ------------------------------------------------------------
+// Collision detection
+// ------------------------------------------------------------
 
 export function findCollision(
-
-    creature,
-
-    objects,
-
-    radius = 14
-
+world,
+creature
 ) {
+const collisionDistance =
+creature.radius || 12;
 
-    for (
-
-        let i = 0;
-
-        i < objects.length;
-
-        i++
-
-    ) {
-
-        const object = objects[i];
-
-        if (
-
-            distance(
-
-                creature.x,
-
-                creature.y,
-
-                object.x,
-
-                object.y
-
-            ) < radius
-
-        ) {
-
-            return i;
-
-        }
-
-    }
-
-    return -1;
-
+for (const food of world.food) {
+if (
+distance(
+creature,
+food
+) <=
+collisionDistance +
+food.radius
+) {
+return {
+type: FOOD,
+object: food
+};
 }
+}
+
+for (const water of world.water) {
+if (
+distance(
+creature,
+water
+) <=
+collisionDistance +
+water.radius
+) {
+return {
+type: WATER,
+object: water
+};
+}
+}
+
+for (const danger of world.danger) {
+if (
+distance(
+creature,
+danger
+) <=
+collisionDistance +
+danger.radius
+) {
+return {
+type: DANGER,
+object: danger
+};
+}
+}
+
+return null;
+}
+
+// ------------------------------------------------------------
+// Remove consumed / hit objects
+// ------------------------------------------------------------
+
+export function removeObject(
+world,
+type,
+objectId
+) {
+let collection;
+
+if (type === FOOD) {
+collection = world.food;
+} else if (type === WATER) {
+collection = world.water;
+} else if (type === DANGER) {
+collection = world.danger;
+} else {
+return false;
+}
+
+const index =
+collection.findIndex(
+object =>
+object.id === objectId
+);
+
+if (index === -1) {
+return false;
+}
+
+collection.splice(
+index,
+1
+);
+
+return true;
+}
+
+// ------------------------------------------------------------
+// World statistics
+// ------------------------------------------------------------
+
+export function getWorldStats(world) {
+return {
+food: world.food.length,
+water: world.water.length,
+danger: world.danger.length,
+
+totalObjects:
+world.food.length +
+world.water.length +
+world.danger.length,
+
+foodConsumed:
+world.totalConsumed.food,
+
+waterConsumed:
+world.totalConsumed.water,
+
+dangerHits:
+world.totalDangerHits,
+
+novelty:
+world.novelty,
+
+lastEvent:
+world.lastEvent
+};
+}
+
+// ------------------------------------------------------------
+// World update
+// ------------------------------------------------------------
+
+export function updateWorld(world) {
+for (const collection of [
+world.food,
+world.water,
+world.danger
+]) {
+for (const object of collection) {
+object.age += 1;
+}
+}
+
+// Novelty naturally fades if nothing new happens.
+world.novelty *= 0.995;
+}
+
+// ------------------------------------------------------------
+// Creature boundary
+// ------------------------------------------------------------
 
 export function keepCreatureInside(
-
-    creature
-
+world,
+creature
 ) {
+const radius =
+creature.radius || 12;
 
-    creature.x = Math.max(
+creature.x = clamp(
+creature.x,
+radius,
+world.width - radius
+);
 
-        10,
-
-        Math.min(
-
-            WORLD_WIDTH - 10,
-
-            creature.x
-
-        )
-
-    );
-
-    creature.y = Math.max(
-
-        10,
-
-        Math.min(
-
-            WORLD_HEIGHT - 10,
-
-            creature.y
-
-        )
-
-    );
-
+creature.y = clamp(
+creature.y,
+radius,
+world.height - radius
+);
 }
-
