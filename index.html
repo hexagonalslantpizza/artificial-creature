@@ -6,11 +6,23 @@
 
     <meta charset="UTF-8">
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+
+        name="viewport"
+
+        content="width=device-width, initial-scale=1.0"
+
+    >
 
     <title>Artificial Creature Experiment</title>
 
-    <link rel="stylesheet" href="style.css">
+    <link
+
+        rel="stylesheet"
+
+        href="style.css"
+
+    >
 
 </head>
 
@@ -18,14 +30,117 @@
 
     <main id="app">
 
-        <h1>Artificial Creature Experiment</h1>
+        <header class="topbar">
 
-        <canvas id="simulation"></canvas>
+            <div>
+
+                <h1>Artificial Creature Experiment</h1>
+
+                <p>
+
+                    A neural creature learning through
+
+                    experience and reinforcement.
+
+                </p>
+
+            </div>
+
+            <div id="status">
+
+                STOPPED
+
+            </div>
+
+        </header>
+
+        <section class="toolbar">
+
+            <button id="startButton">
+
+                START EXPERIMENT
+
+            </button>
+
+            <button id="resetButton">
+
+                RESET
+
+            </button>
+
+            <button id="foodButton">
+
+                SPAWN FOOD
+
+            </button>
+
+            <button id="waterButton">
+
+                SPAWN WATER
+
+            </button>
+
+            <button id="dangerButton">
+
+                SPAWN DANGER
+
+            </button>
+
+        </section>
+
+        <section class="simulator">
+
+            <canvas
+
+                id="simulationCanvas"
+
+                width="1200"
+
+                height="750"
+
+            ></canvas>
+
+        </section>
+
+        <footer>
+
+            <span>
+
+                82 neurons
+
+            </span>
+
+            <span>
+
+                72 internal neurons
+
+            </span>
+
+            <span>
+
+                Reinforcement learning
+
+            </span>
+
+            <span>
+
+                Episodic memory
+
+            </span>
+
+        </footer>
 
     </main>
 
-    <script src="brain.js"></script>
+    <script
+
+        type="module"
+
+        src="./main.js"
+
+    ></script>
 
 </body>
 
 </html>
+
