@@ -1,33 +1,666 @@
+/* =========================================================
+
+   ARTIFICIAL CREATURE EXPERIMENT — ALPHA
+
+   Main Interface Styling
+
+   ========================================================= */
+
 * {
-     box-sizing: border-box;
+
+    box-sizing: border-box;
+
+}
+
+html,
+
+body {
+
+    margin: 0;
+
+    padding: 0;
+
+    min-height: 100%;
+
+    background: #080b0f;
+
+    color: #dce6ee;
+
+    font-family:
+
+        "Segoe UI",
+
+        Arial,
+
+        Helvetica,
+
+        sans-serif;
+
 }
 
 body {
-     margin: 0;
-     background: #080b10;
-     color: #e8edf2;
-     font-family: Arial, sans-serif;
+
+    min-height: 100vh;
+
+    overflow-x: auto;
+
 }
 
-#app {
-     width: 100%;
-     min-height: 100vh;
-     padding: 20px;
+/* =========================================================
+
+   APP
+
+   ========================================================= */
+
+.app {
+
+    width: min(1240px, calc(100vw - 24px));
+
+    margin: 12px auto 24px;
+
 }
 
-h1 {
-     margin: 0 0 15px 0;
-     font-size: 26px;
-     font-weight: 600;
+/* =========================================================
+
+   HEADER
+
+   ========================================================= */
+
+.topbar {
+
+    min-height: 76px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    padding: 14px 18px;
+
+    background: #10161c;
+
+    border: 1px solid #27323b;
+
+    border-bottom: 0;
+
+    box-shadow:
+
+        0 0 0 1px rgba(255, 255, 255, 0.015),
+
+        0 8px 24px rgba(0, 0, 0, 0.25);
+
 }
 
-#simulation {
-     display: block;
-     width: 100%;
-     max-width: 1200px;
-     height: auto;
+.title-area {
 
-     background: #10151c;
-     border: 1px solid #29313b;
-     border-radius: 8px;
+    min-width: 0;
+
 }
+
+.title-area h1 {
+
+    margin: 0;
+
+    font-size: 22px;
+
+    font-weight: 800;
+
+    letter-spacing: 2px;
+
+    color: #f0f5f8;
+
+}
+
+.subtitle {
+
+    margin-top: 5px;
+
+    font-size: 10px;
+
+    font-weight: 700;
+
+    letter-spacing: 1.8px;
+
+    color: #71818d;
+
+}
+
+.status-area {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    padding-left: 16px;
+
+    font-size: 11px;
+
+    font-weight: 800;
+
+    letter-spacing: 1.4px;
+
+    color: #9eabb4;
+
+}
+
+.status-dot {
+
+    width: 9px;
+
+    height: 9px;
+
+    display: inline-block;
+
+    border-radius: 50%;
+
+    background: #59636a;
+
+    box-shadow: 0 0 8px rgba(120, 140, 150, 0.2);
+
+}
+
+/* =========================================================
+
+   TOOLBAR
+
+   ========================================================= */
+
+.toolbar {
+
+    display: flex;
+
+    align-items: stretch;
+
+    flex-wrap: wrap;
+
+    background: #0d1217;
+
+    border: 1px solid #27323b;
+
+    padding: 9px;
+
+    gap: 8px;
+
+}
+
+.control-group {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 6px;
+
+    padding-right: 8px;
+
+    border-right: 1px solid #202a31;
+
+}
+
+.control-group:last-child {
+
+    border-right: 0;
+
+}
+
+.control-label {
+
+    padding: 0 5px;
+
+    font-size: 9px;
+
+    font-weight: 800;
+
+    letter-spacing: 1.3px;
+
+    color: #5f707c;
+
+}
+
+/* =========================================================
+
+   BUTTONS
+
+   ========================================================= */
+
+button {
+
+    appearance: none;
+
+    border: 1px solid #33404a;
+
+    border-radius: 4px;
+
+    background: #151d24;
+
+    color: #bdc9d1;
+
+    padding: 7px 10px;
+
+    font-family: inherit;
+
+    font-size: 10px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.8px;
+
+    cursor: pointer;
+
+    transition:
+
+        background 0.12s ease,
+
+        border-color 0.12s ease,
+
+        color 0.12s ease,
+
+        transform 0.08s ease;
+
+}
+
+button:hover {
+
+    background: #1d2831;
+
+    border-color: #53616c;
+
+    color: #eef4f7;
+
+}
+
+button:active {
+
+    transform: translateY(1px);
+
+}
+
+button:focus-visible {
+
+    outline: 2px solid #8294a0;
+
+    outline-offset: 2px;
+
+}
+
+button.primary {
+
+    background: #1b2b34;
+
+    border-color: #4d6b78;
+
+    color: #dcecf2;
+
+}
+
+button.primary:hover {
+
+    background: #243944;
+
+    border-color: #6f8f9c;
+
+}
+
+button.danger-button {
+
+    border-color: #66464b;
+
+    color: #d7aeb3;
+
+}
+
+button.danger-button:hover {
+
+    background: #321f23;
+
+    border-color: #8a5b61;
+
+    color: #f0c8cd;
+
+}
+
+button.warning-button {
+
+    border-color: #665b43;
+
+    color: #d4c49d;
+
+}
+
+button.warning-button:hover {
+
+    background: #302a1e;
+
+    border-color: #88774e;
+
+    color: #ead9ae;
+
+}
+
+/* =========================================================
+
+   ADVANCED TOOLBAR
+
+   ========================================================= */
+
+.advanced-toolbar {
+
+    display: flex;
+
+    align-items: center;
+
+    flex-wrap: wrap;
+
+    gap: 12px;
+
+    min-height: 44px;
+
+    padding: 8px 11px;
+
+    background: #0a0f13;
+
+    border-left: 1px solid #27323b;
+
+    border-right: 1px solid #27323b;
+
+    border-bottom: 1px solid #27323b;
+
+}
+
+.advanced-title {
+
+    font-size: 9px;
+
+    font-weight: 900;
+
+    letter-spacing: 1.4px;
+
+    color: #687984;
+
+    white-space: nowrap;
+
+}
+
+.advanced-buttons {
+
+    display: flex;
+
+    gap: 6px;
+
+}
+
+.keyboard-hints {
+
+    margin-left: auto;
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    align-items: center;
+
+    gap: 10px;
+
+    color: #566570;
+
+    font-size: 9px;
+
+    font-weight: 700;
+
+}
+
+kbd {
+
+    display: inline-block;
+
+    min-width: 17px;
+
+    margin-right: 3px;
+
+    padding: 2px 4px;
+
+    border: 1px solid #35414a;
+
+    border-radius: 3px;
+
+    background: #121920;
+
+    color: #8c9ca7;
+
+    font-family: inherit;
+
+    font-size: 8px;
+
+    font-weight: 900;
+
+    text-align: center;
+
+}
+
+/* =========================================================
+
+   SIMULATION
+
+   ========================================================= */
+
+.simulation-container {
+
+    width: 100%;
+
+    background: #05080b;
+
+    border-left: 1px solid #27323b;
+
+    border-right: 1px solid #27323b;
+
+    border-bottom: 1px solid #27323b;
+
+    padding: 10px;
+
+    overflow: auto;
+
+}
+
+#simulationCanvas {
+
+    display: block;
+
+    width: 1200px;
+
+    height: 750px;
+
+    max-width: none;
+
+    background: #080d11;
+
+    border: 1px solid #202b33;
+
+    box-shadow:
+
+        inset 0 0 30px rgba(0, 0, 0, 0.35),
+
+        0 6px 20px rgba(0, 0, 0, 0.3);
+
+}
+
+/* =========================================================
+
+   FOOTER
+
+   ========================================================= */
+
+.footer {
+
+    min-height: 48px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 18px;
+
+    padding: 9px 14px;
+
+    background: #0d1217;
+
+    border-left: 1px solid #27323b;
+
+    border-right: 1px solid #27323b;
+
+    border-bottom: 1px solid #27323b;
+
+    box-shadow:
+
+        0 10px 25px rgba(0, 0, 0, 0.25);
+
+}
+
+.footer-item {
+
+    display: flex;
+
+    align-items: baseline;
+
+    gap: 6px;
+
+    white-space: nowrap;
+
+}
+
+.footer-item strong {
+
+    font-size: 11px;
+
+    font-weight: 900;
+
+    letter-spacing: 0.8px;
+
+    color: #aebbc3;
+
+}
+
+.footer-item span {
+
+    font-size: 8px;
+
+    font-weight: 800;
+
+    letter-spacing: 1px;
+
+    color: #53636e;
+
+}
+
+.footer-divider {
+
+    width: 1px;
+
+    height: 18px;
+
+    background: #29343c;
+
+}
+
+/* =========================================================
+
+   SCROLLBARS
+
+   ========================================================= */
+
+::-webkit-scrollbar {
+
+    width: 9px;
+
+    height: 9px;
+
+}
+
+::-webkit-scrollbar-track {
+
+    background: #080c10;
+
+}
+
+::-webkit-scrollbar-thumb {
+
+    background: #27343d;
+
+    border-radius: 5px;
+
+}
+
+::-webkit-scrollbar-thumb:hover {
+
+    background: #394953;
+
+}
+
+/* =========================================================
+
+   RESPONSIVE
+
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+    .app {
+
+        width: 1200px;
+
+        margin-left: 8px;
+
+        margin-right: 8px;
+
+    }
+
+    .keyboard-hints {
+
+        margin-left: 0;
+
+        width: 100%;
+
+    }
+
+    .footer {
+
+        justify-content: flex-start;
+
+    }
+
+}
+
+@media (max-width: 600px) {
+
+    .topbar {
+
+        align-items: flex-start;
+
+        gap: 12px;
+
+    }
+
+    .title-area h1 {
+
+        font-size: 17px;
+
+    }
+
+    .subtitle {
+
+        font-size: 8px;
+
+    }
+
+    .status-area {
+
+        padding-top: 4px;
+
+    }
+
+}
+
