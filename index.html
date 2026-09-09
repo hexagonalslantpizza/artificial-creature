@@ -6,89 +6,179 @@
 
     <meta charset="UTF-8">
 
-    <meta
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        name="viewport"
+    <title>Artificial Creature Experiment — Alpha</title>
 
-        content="width=device-width, initial-scale=1.0"
-
-    >
-
-    <title>Artificial Creature Experiment</title>
-
-    <link
-
-        rel="stylesheet"
-
-        href="style.css"
-
-    >
+    <link rel="stylesheet" href="style.css">
 
 </head>
 
 <body>
 
-    <main id="app">
+    <div class="app">
+
+        <!-- HEADER -->
 
         <header class="topbar">
 
-            <div>
+            <div class="title-area">
 
-                <h1>Artificial Creature Experiment</h1>
+                <h1>ARTIFICIAL CREATURE EXPERIMENT</h1>
 
-                <p>
+                <div class="subtitle">
 
-                    A neural creature learning through
+                    ALPHA • ARTIFICIAL NEURAL LIFE SIMULATION
 
-                    experience and reinforcement.
-
-                </p>
+                </div>
 
             </div>
 
-            <div id="status">
+            <div class="status-area">
 
-                STOPPED
+                <span id="statusIndicator" class="status-dot"></span>
+
+                <span id="statusText">PAUSED</span>
 
             </div>
 
         </header>
 
+        <!-- MAIN CONTROLS -->
+
         <section class="toolbar">
 
-            <button id="startButton">
+            <div class="control-group primary-controls">
 
-                START EXPERIMENT
+                <button id="startButton" class="primary">
 
-            </button>
+                    START
 
-            <button id="resetButton">
+                </button>
 
-                RESET
+                <button id="resetButton">
 
-            </button>
+                    RESET CREATURE
 
-            <button id="foodButton">
+                </button>
 
-                SPAWN FOOD
+            </div>
 
-            </button>
+            <div class="control-group world-controls">
 
-            <button id="waterButton">
+                <span class="control-label">
 
-                SPAWN WATER
+                    WORLD
 
-            </button>
+                </span>
 
-            <button id="dangerButton">
+                <button id="foodButton">
 
-                SPAWN DANGER
+                    + FOOD
 
-            </button>
+                </button>
+
+                <button id="waterButton">
+
+                    + WATER
+
+                </button>
+
+                <button id="dangerButton" class="danger-button">
+
+                    + DANGER
+
+                </button>
+
+            </div>
+
+            <div class="control-group clear-controls">
+
+                <span class="control-label">
+
+                    CLEAR
+
+                </span>
+
+                <button id="clearFoodButton">
+
+                    FOOD
+
+                </button>
+
+                <button id="clearWaterButton">
+
+                    WATER
+
+                </button>
+
+                <button id="clearDangerButton">
+
+                    DANGER
+
+                </button>
+
+                <button id="clearMapButton">
+
+                    MAP
+
+                </button>
+
+            </div>
 
         </section>
 
-        <section class="simulator">
+        <!-- ADVANCED CONTROLS -->
+
+        <section class="advanced-toolbar">
+
+            <div class="advanced-title">
+
+                EXPERIMENT CONTROLS
+
+            </div>
+
+            <div class="advanced-buttons">
+
+                <button id="resetCreatureButton">
+
+                    RESET CREATURE
+
+                </button>
+
+                <button id="resetBrainButton" class="warning-button">
+
+                    RESET BRAIN
+
+                </button>
+
+                <button id="fullResetButton" class="danger-button">
+
+                    FULL RESET
+
+                </button>
+
+            </div>
+
+            <div class="keyboard-hints">
+
+                <span><kbd>F</kbd> Food</span>
+
+                <span><kbd>W</kbd> Water</span>
+
+                <span><kbd>D</kbd> Danger</span>
+
+                <span><kbd>C</kbd> Clear Map</span>
+
+                <span><kbd>SPACE</kbd> Pause / Start</span>
+
+            </div>
+
+        </section>
+
+        <!-- SIMULATION -->
+
+        <main class="simulation-container">
 
             <canvas
 
@@ -96,49 +186,71 @@
 
                 width="1200"
 
-                height="750"
+                height="750">
 
-            ></canvas>
+            </canvas>
 
-        </section>
+        </main>
 
-        <footer>
+        <!-- FOOTER -->
 
-            <span>
+        <footer class="footer">
 
-                82 neurons
+            <div class="footer-item">
 
-            </span>
+                <strong>82</strong>
 
-            <span>
+                <span>BASE NEURONS</span>
 
-                72 internal neurons
+            </div>
 
-            </span>
+            <div class="footer-divider"></div>
 
-            <span>
+            <div class="footer-item">
 
-                Reinforcement learning
+                <strong>72</strong>
 
-            </span>
+                <span>INTERNAL NEURONS</span>
 
-            <span>
+            </div>
 
-                Episodic memory
+            <div class="footer-divider"></div>
 
-            </span>
+            <div class="footer-item">
+
+                <strong>RL</strong>
+
+                <span>REINFORCEMENT LEARNING</span>
+
+            </div>
+
+            <div class="footer-divider"></div>
+
+            <div class="footer-item">
+
+                <strong>MEMORY</strong>
+
+                <span>EPISODIC LEARNING</span>
+
+            </div>
+
+            <div class="footer-divider"></div>
+
+            <div class="footer-item">
+
+                <strong>GROWING</strong>
+
+                <span>ADAPTIVE BRAIN</span>
+
+            </div>
 
         </footer>
 
-    </main>
+    </div>
 
-    <script
+    <!-- SIMULATION CODE -->
 
-        type="module"
-
-        src="./main.js"
-
-    ></script>
+    <script type="module" src="main.js"></script>
 
 </body>
 
